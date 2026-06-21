@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisis Regresi Ganda - Harga Rumah Jaksel</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Analisis <span>Regresi Ganda</span></h1>
+            <p class="subtitle">Memprediksi Harga Rumah Jakarta Selatan</p>
+            <p class="dataset-info">Data: HARGA RUMAH JAKSEL.csv | <span id="total-data">Memuat...</span></p>
+        </div>
+    </header>
+
+    <!-- METRIK -->
+    <section id="metrics">
+        <div class="container">
+            <h2>Metrik Model</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value" id="r2-value">-</div>
+                    <div class="metric-label">R² Score</div>
+                    <div class="metric-desc">Koefisien determinasi</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="adj-r2-value">-</div>
+                    <div class="metric-label">Adj. R²</div>
+                    <div class="metric-desc">Adjusted R-squared</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="rmse-value">-</div>
+                    <div class="metric-label">RMSE</div>
+                    <div class="metric-desc">Root Mean Sq. Error</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="mae-value">-</div>
+                    <div class="metric-label">MAE</div>
+                    <div class="metric-desc">Mean Absolute Error</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MODEL REGRESI -->
+    <section id="model">
+        <div class="container">
+            <h2>Model Regresi Linear</h2>
+            <div class="model-box">
+                <p class="model-equation">Y = b₀ + b₁X₁ + b₂X₂ + b₃X₃ + b₄X₄</p>
+                <p class="model-result" id="model-result">Memuat model...</p>
+            </div>
+            
+            <div class="coefficients-grid">
+                <div class="coef-card">
+                    <div class="coef-label">Variabel</div>
+                    <div class="coef-label">Koefisien</div>
+                    <div class="coef-label">Kontribusi Relatif</div>
+                </div>
+                <div class="coef-card" id="coef-lt">
+                    <span class="coef-name">LT (Luas Tanah)</span>
+                    <span class="coef-value" id="coef-lt-value">-</span>
+                    <div class="coef-bar"><div class="coef-bar-fill" id="bar-lt" style="width:0%"></div></div>
+                    <span class="coef-percent" id="pct-lt">0%</span>
+                </div>
+                <div class="coef-card" id="coef-lb">
+                    <span class="coef-name">LB (Luas Bangunan)</span>
+                    <span class="coef-value" id="coef-lb-value">-</span>
+                    <div class="coef-bar"><div class="coef-bar-fill" id="bar-lb" style="width:0%"></div></div>
+                    <span class="coef-percent" id="pct-lb">0%</span>
+                </div>
+                <div class="coef-card" id="coef-jkt">
+                    <span class="coef-name">JKT (Kamar Tidur)</span>
+                    <span class="coef-value" id="coef-jkt-value">-</span>
+                    <div class="coef-bar"><div class="coef-bar-fill" id="bar-jkt" style="width:0%"></div></div>
+                    <span class="coef-percent" id="pct-jkt">0%</span>
+                </div>
+                <div class="coef-card" id="coef-grs">
+                    <span class="coef-name">GRS (Garasi)</span>
+                    <span class="coef-value" id="coef-grs-value">-</span>
+                    <div class="coef-bar"><div class="coef-bar-fill" id="bar-grs" style="width:0%"></div></div>
+                    <span class="coef-percent" id="pct-grs">0%</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PREDIKSI -->
+    <section id="prediksi">
+        <div class="container">
+            <h2>Prediksi Harga Rumah</h2>
+            <div class="prediksi-box">
+                <div class="prediksi-form">
+                    <div class="form-group">
+                        <label>Luas Tanah (m²)</label>
+                        <input type="number" id="input-lt" value="500" step="10">
+                    </div>
+                    <div class="form-group">
+                        <label>Luas Bangunan (m²)</label>
+                        <input type="number" id="input-lb" value="300" step="10">
+                    </div>
+                    <div class="form-group">
+                        <label>Jumlah Kamar Tidur</label>
+                        <input type="number" id="input-jkt" value="4" step="1" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Garasi (0=Tidak Ada, 1=Ada)</label>
+                        <input type="number" id="input-grs" value="1" step="1" min="0" max="1">
+                    </div>
+                    <button id="btn-prediksi">Prediksi Harga</button>
+                </div>
+                <div class="prediksi-hasil">
+                    <p>Estimasi Harga Rumah</p>
+                    <div class="prediksi-nilai" id="prediksi-nilai">Rp -</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- DATASET & FILTER -->
+    <section id="dataset">
+        <div class="container">
+            <h2>Dataset & Filter</h2>
+            
+            <div class="dataset-controls">
+                <div class="filter-group">
+                    <label for="filter-garasi">Garasi:</label>
+                    <select id="filter-garasi">
+                        <option value="semua">Semua</option>
+                        <option value="1">Ada</option>
+                        <option value="0">Tidak Ada</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="sort-harga">Urutkan Harga:</label>
+                    <select id="sort-harga">
+                        <option value="desc">Terbesar ke Terkecil</option>
+                        <option value="asc">Terkecil ke Terbesar</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="show-rows">Tampilkan:</label>
+                    <select id="show-rows">
+                        <option value="10">10 baris</option>
+                        <option value="25">25 baris</option>
+                        <option value="50">50 baris</option>
+                        <option value="100" selected>100 baris</option>
+                        <option value="200">200 baris</option>
+                        <option value="500">500 baris</option>
+                        <option value="semua">Semua</option>
+                    </select>
+                </div>
+                <button id="btn-apply-filter">Terapkan</button>
+            </div>
+            
+            <p class="dataset-info">Total: <span id="total-data-table">-</span> baris | Menampilkan: <span id="display-count">-</span> baris</p>
+            <div class="table-wrapper">
+                <table id="data-table">
+                    <thead><tr id="table-header"></tr></thead>
+                    <tbody id="table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- VISUALISASI -->
+    <section id="visualisasi">
+        <div class="container">
+            <h2>Eksplorasi Heatmap & Model PLS</h2>
+            
+            <div class="vis-grid">
+                <div class="vis-card">
+                    <h3>1. Heatmap Korelasi</h3>
+                    <div class="vis-img"><img id="heatmap-img" src="" alt="Heatmap"></div>
+                </div>
+                <div class="vis-card">
+                    <h3>2. PLS Scores Plot</h3>
+                    <div class="vis-img"><img id="pls-scores-img" src="" alt="PLS Scores"></div>
+                </div>
+                <div class="vis-card">
+                    <h3>3. PLS Loadings</h3>
+                    <div class="vis-img"><img id="pls-loadings-img" src="" alt="PLS Loadings"></div>
+                </div>
+            </div>
+            
+            <h2 style="margin-top:30px;">Hubungan X vs Harga</h2>
+            <div class="vis-grid">
+                <div class="vis-card">
+                    <h3>LT vs Harga</h3>
+                    <div class="vis-img"><img id="scatter-lt-img" src="" alt="Scatter LT"></div>
+                </div>
+                <div class="vis-card">
+                    <h3>LB vs Harga</h3>
+                    <div class="vis-img"><img id="scatter-lb-img" src="" alt="Scatter LB"></div>
+                </div>
+                <div class="vis-card">
+                    <h3>JKT vs Harga</h3>
+                    <div class="vis-img"><img id="scatter-jkt-img" src="" alt="Scatter JKT"></div>
+                </div>
+                <div class="vis-card">
+                    <h3>GRS vs Harga</h3>
+                    <div class="vis-img"><img id="scatter-grs-img" src="" alt="Scatter GRS"></div>
+                </div>
+            </div>
+            
+            <h2 style="margin-top:30px;">Diagnostik Regresi</h2>
+            <div class="vis-grid">
+                <div class="vis-card">
+                    <h3>Actual vs Predicted</h3>
+                    <div class="vis-img"><img id="actual-pred-img" src="" alt="Actual vs Pred"></div>
+                </div>
+                <div class="vis-card">
+                    <h3>Residual Plot</h3>
+                    <div class="vis-img"><img id="residual-img" src="" alt="Residual"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
